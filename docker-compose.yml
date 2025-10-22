@@ -6,7 +6,7 @@ services:
     container_name: kafka
     hostname: kafka
     
-    user: "root"  # <-- TAMBAHKAN BARIS INI
+    user: "root"
 
     ports:
       - "9092:9092"
@@ -30,17 +30,31 @@ services:
       KAFKA_KRAFT_CLUSTER_ID: 5L6g3nShT-eMCtK--X86sw
     volumes:
       - kafka-data:/opt/kafka/data
-      
+
   redpanda-console:
-      image: docker.redpanda.com/redpandadata/console:latest
-      container_name: redpanda-console
-      ports:
-        - "8080:8080"
-      environment:
-        KAFKA_BROKERS: kafka:9092
-      depends_on:
-        - kafka
+        image: docker.redpanda.com/redpandadata/console:latest
+        container_name: redpanda-console
+        ports:
+          - "8080:8080"
+        environment:
+          KAFKA_BROKERS: kafka:9092
+        depends_on:
+          - kafka
+
+  postgres:
+     image: postgres:16-alpine
+     container_name: postgres
+     environment:
+       POSTGRES_DB: ordersdb
+       POSTGRES_USER: user
+       POSTGRES_PASSWORD: password
+     ports:
+       - "5432:5432"
+     volumes:
+       - postgres-data:/var/lib/postgresql/data
 
 volumes:
-  kafka-data:
-    driver: local
+   kafka-data:
+     driver: local
+   postgres-data:
+     driver: local

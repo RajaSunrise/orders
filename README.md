@@ -1,13 +1,48 @@
-# Order Service simple with kafka
+# Order Service with Kafka and CRUD
 
-## create topic with command
+A Go microservice for processing orders with Kafka integration, CRUD API, and PostgreSQL persistence.
+
+## Features
+- REST API for order CRUD operations
+- Kafka consumer for order processing
+- Separate Kafka consumer for processed orders
+- PostgreSQL database with GORM
+- Docker Compose setup for Kafka and PostgreSQL
+
+## Setup
+
+1. Start services:
+```bash
+docker-compose up -d
+```
+
+2. Create Kafka topics:
 ```bash
 # orders-topic
-docker exec -it kafka kafka-topics.sh --create --topic processed-orders --bootstrap-server kafka:9092
+docker exec -it kafka kafka-topics.sh --create --topic orders-topic --bootstrap-server kafka:9092
 
-# processed-order topic
+# processed-orders topic
 docker exec -it kafka kafka-topics.sh --create --topic processed-orders --bootstrap-server kafka:9092
 ```
+
+3. Run the application:
+```bash
+go run cmd/orders/main.go
+```
+
+## API Endpoints
+
+- `GET /health` - Health check
+- `GET /orders` - Get all orders
+- `GET /orders/:id` - Get order by ID
+- `POST /orders` - Create new order
+- `PUT /orders/:id` - Update order
+- `DELETE /orders/:id` - Delete order
+
+## Kafka Topics
+
+- `orders-topic` - Input for order processing
+- `processed-orders` - Output with validated orders
 ### Test producer
 ```bash
 # orders-topic producer
