@@ -27,10 +27,10 @@ func ProcessProcessedOrders(consumer *kafka.Reader) {
 
 		// Log the received processed order
 		log.Printf("Received Processed Order: ID=%s, User=%s, Product=%s, Status=%s | Time: %s",
-			order.ID, order.UserID, order.Product, order.Status, time.Now().Format(time.RFC3339))
+			order.ID.String(), order.UserID.String(), order.ProductID.String(), order.Status, time.Now().Format(time.RFC3339))
 
 		// Save or update in DB
-		if err := DB.Where(models.Order{ID: order.ID}).Assign(order).FirstOrCreate(&order).Error; err != nil {
+		if err := DB.Where("id = ?", order.ID).Assign(order).FirstOrCreate(&order).Error; err != nil {
 			log.Printf("Error saving processed order to DB: %v", err)
 		}
 	}

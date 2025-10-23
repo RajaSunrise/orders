@@ -78,7 +78,7 @@ func ProcessOrders(consumer *kafka.Reader) {
 		}
 
 		log.Printf("Processed Order: ID=%s, User=%s, Product=%s, Status=%s | Time: %s",
-			order.ID, order.UserID, order.Product, order.Status, time.Now().Format(time.RFC3339))
+			order.ID.String(), order.UserID.String(), order.ProductID.String(), order.Status, time.Now().Format(time.RFC3339))
 
 		// Send to processed-orders
 		processedMsg, err := json.Marshal(order)

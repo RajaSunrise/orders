@@ -5,10 +5,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/rajasunsire/orders/internal/handlers"
+	"github.com/rajasunsire/orders/internal/routes"
 	"github.com/rajasunsire/orders/internal/services"
 )
 
@@ -22,24 +21,11 @@ func main() {
 
 	// Setup Fiber untuk API
 	app := fiber.New()
+	
+	// setup Routes
+	routes.Routes(app)
 
-	// Health check endpoint
-	app.Get("/health", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"status":  "ok",
-			"message": "Order Processing Service is running",
-			"time":    time.Now().Format(time.RFC3339),
-		})
-	})
-
-	// CRUD endpoints for orders
-	app.Get("/orders", handlers.GetOrders)
-	app.Get("/orders/:id", handlers.GetOrder)
-	app.Post("/orders", handlers.CreateOrder)
-	app.Put("/orders/:id", handlers.UpdateOrder)
-	app.Delete("/orders/:id", handlers.DeleteOrder)
-
-	// Jalankan Fiber di goroutine
+	// Running Fiber di goroutine
 	go func() {
 		if err := app.Listen(":3000"); err != nil {
 			log.Fatalf("Failed to start Fiber: %v", err)
@@ -60,7 +46,7 @@ func main() {
 	// Start processed orders consumer service
 	go services.ProcessProcessedOrders(processedConsumer)
 
-	// Tunggu sinyal shutdown
+	// A Wait signal shutdown
 	<-signals
 	log.Println("Shutting down...")
 

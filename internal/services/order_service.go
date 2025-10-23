@@ -2,24 +2,21 @@ package services
 
 import (
 	"errors"
+
+	"github.com/google/uuid"
 	"github.com/rajasunsire/orders/internal/models"
 )
 
 // validateOrder validates the order
 func validateOrder(order models.Order) bool {
-	validUsers := map[string]bool{
-		"user123": true,
-		"user456": true,
-	}
-	validProducts := map[string]bool{
-		"laptop":     true,
-		"smartphone": true,
-	}
-
-	if _, userOk := validUsers[order.UserID]; !userOk {
+	var user models.User
+	result := DB.Where("id = ?", order.UserID).First(&user)
+	if result.Error != nil {
 		return false
 	}
-	if _, productOk := validProducts[order.Product]; !productOk {
+	var product models.Product
+	result = DB.Where("id = ?", order.ProductID).First(&product)
+	if result.Error != nil {
 		return false
 	}
 	if order.Quantity <= 0 || order.TotalAmount <= 0 {
@@ -38,7 +35,11 @@ func GetAllOrders() ([]models.Order, error) {
 // GetOrderByID returns order by ID
 func GetOrderByID(id string) (models.Order, error) {
 	var order models.Order
-	result := DB.Where("id = ?", id).First(&order)
+	parsedID, err := uuid.Parse(id)
+	if err != nil {
+		return models.Order{}, errors.New("invalid ID")
+	}
+	result := DB.Where("id = ?", parsedID).First(&order)
 	if result.Error != nil {
 		return models.Order{}, errors.New("order not found")
 	}
@@ -47,8 +48,8 @@ func GetOrderByID(id string) (models.Order, error) {
 
 // CreateOrder creates a new order
 func CreateOrder(order models.Order) error {
-	if order.ID == "" {
-		return errors.New("order ID is required")
+	if order.ID.String() == "00000000-0000-0000-0000-000000000000" {
+		order.ID = uuid.New()
 	}
 	// Validate and set status
 	if validateOrder(order) {
@@ -62,19 +63,27 @@ func CreateOrder(order models.Order) error {
 
 // UpdateOrder updates an existing order
 func UpdateOrder(id string, updatedOrder models.Order) error {
+	parsedID, err := uuid.Parse(id)
+	if err != nil {
+		return errors.New("invalid ID")
+	}
 	var order models.Order
-	result := DB.Where("id = ?", id).First(&order)
+	result := DB.Where("id = ?", parsedID).First(&order)
 	if result.Error != nil {
 		return errors.New("order not found")
 	}
-	updatedOrder.ID = id
+	updatedOrder.ID = parsedID
 	DB.Save(&updatedOrder)
 	return nil
 }
 
 // DeleteOrder deletes an order by ID
 func DeleteOrder(id string) error {
-	result := DB.Where("id = ?", id).Delete(&models.Order{})
+	parsedID, err := uuid.Parse(id)
+	if err != nil {
+		return errors.New("invalid ID")
+	}
+	result := DB.Where("id = ?", parsedID).Delete(&models.Order{})
 	if result.RowsAffected == 0 {
 		return errors.New("order not found")
 	}
